@@ -1,0 +1,21 @@
+﻿  Renderer.cpp
+c:\users\diego\source\repos\tfx\tfx\src\gl\renderer.h(30): warning C4091: 'typedef ': ignored on left of 'tfx::Light' when no variable is declared
+c:\users\diego\source\repos\tfx\tfx\src\gl\renderer.h(41): warning C4091: 'typedef ': ignored on left of 'tfx::Vertex' when no variable is declared
+c:\users\diego\source\repos\tfx\tfx\src\gl\renderer.h(71): warning C4091: 'typedef ': ignored on left of 'tfx::RendererState' when no variable is declared
+c:\users\diego\source\repos\tfx\tfx\src\gl\renderer.h(119): warning C4091: 'typedef ': ignored on left of 'tfx::Renderer::Drawable' when no variable is declared
+c:\users\diego\source\repos\tfx\tfx\src\gl\renderer.h(131): warning C4091: 'typedef ': ignored on left of 'tfx::Renderer::Batch' when no variable is declared
+c:\users\diego\source\repos\tfx\tfx\src\core\igame.h(9): warning C4091: 'typedef ': ignored on left of 'tfx::GameConfig' when no variable is declared
+c:\users\diego\source\repos\tfx\tfx\src\core\engine.h(22): warning C4091: 'typedef ': ignored on left of 'tfx::EngineConfig' when no variable is declared
+c:\users\diego\source\repos\tfx\tfx\src\core\input.h(13): warning C4091: 'typedef ': ignored on left of 'tfx::State' when no variable is declared
+c:\users\diego\source\repos\tfx\tfx\src\gl\renderer.cpp(16): warning C4244: 'argument': conversion from 'tfx::u32' to 'float', possible loss of data
+c:\users\diego\source\repos\tfx\tfx\src\gl\renderer.cpp(216): warning C4244: 'initializing': conversion from 'int' to 'float', possible loss of data
+c:\users\diego\source\repos\tfx\tfx\src\gl\renderer.cpp(217): warning C4244: 'initializing': conversion from 'int' to 'float', possible loss of data
+c:\users\diego\source\repos\tfx\tfx\src\gl\renderer.cpp(236): warning C4244: '=': conversion from 'int' to 'float', possible loss of data
+c:\users\diego\source\repos\tfx\tfx\src\gl\renderer.cpp(248): warning C4244: '=': conversion from 'int' to 'float', possible loss of data
+c:\users\diego\source\repos\tfx\tfx\src\gl\renderer.cpp(282): warning C4244: 'argument': conversion from 'tfx::i32' to 'float', possible loss of data
+c:\users\diego\source\repos\tfx\tfx\src\gl\renderer.cpp(307): warning C4244: 'argument': conversion from 'tfx::i32' to 'float', possible loss of data
+c:\users\diego\source\repos\tfx\tfx\src\gl\renderer.cpp(312): warning C4244: 'argument': conversion from 'tfx::i32' to 'float', possible loss of data
+c:\users\diego\source\repos\tfx\tfx\src\gl\renderer.cpp(317): warning C4244: 'argument': conversion from 'tfx::i32' to 'float', possible loss of data
+c:\users\diego\source\repos\tfx\tfx\src\gl\renderer.cpp(322): warning C4244: 'argument': conversion from 'tfx::i32' to 'float', possible loss of data
+c:\users\diego\source\repos\tfx\tfx\src\gl\renderer.cpp(614): warning C4244: 'argument': conversion from 'tfx::i32' to 'float', possible loss of data
+  TFX.vcxproj -> C:\Users\Diego\source\repos\TFX\Debug\TFX.exe

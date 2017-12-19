@@ -1,0 +1,16 @@
+﻿  Renderer.cpp
+c:\users\diego\source\repos\tfx\tfx\src\gl\Renderer.h(27): warning C4091: 'typedef ': ignored on left of 'tfx::Vertex' when no variable is declared
+c:\users\diego\source\repos\tfx\tfx\src\gl\Renderer.h(88): warning C4091: 'typedef ': ignored on left of 'tfx::Renderer::Drawable' when no variable is declared
+c:\users\diego\source\repos\tfx\tfx\src\gl\Renderer.h(100): warning C4091: 'typedef ': ignored on left of 'tfx::Renderer::Batch' when no variable is declared
+src\gl\Renderer.cpp(10): warning C4244: 'argument': conversion from 'tfx::u32' to 'float', possible loss of data
+src\gl\Renderer.cpp(116): warning C4244: 'argument': conversion from 'tfx::i32' to 'float', possible loss of data
+src\gl\Renderer.cpp(141): warning C4244: 'argument': conversion from 'tfx::i32' to 'float', possible loss of data
+src\gl\Renderer.cpp(146): warning C4244: 'argument': conversion from 'tfx::i32' to 'float', possible loss of data
+src\gl\Renderer.cpp(151): warning C4244: 'argument': conversion from 'tfx::i32' to 'float', possible loss of data
+src\gl\Renderer.cpp(156): warning C4244: 'argument': conversion from 'tfx::i32' to 'float', possible loss of data
+  Generating code
+  11 of 983 functions ( 1.1%) were compiled, the rest were copied from previous compilation.
+    3 functions were new in current compilation
+    32 functions had inline decision re-evaluated but remain unchanged
+  Finished generating code
+  TFX.vcxproj -> C:\Users\Diego\source\repos\TFX\Release\TFX.exe

@@ -1,0 +1,15 @@
+*.exe
+*.user
+*.filters
+.vs
+/.vs
+.tlog
+/.tlog
+*.pdb
+*.obj
+*.iobj
+*.ipdb
+*.ilk
+*.log
+*.tlog
+*.idb
