@@ -1,5 +1,5 @@
 R"(#version 330 core
-layout (location = 0) out vec4 o_occlusion;
+layout (location = 0) out float o_occlusion;
 
 in DATA {
 	vec3 Position;
@@ -12,6 +12,6 @@ uniform sampler2D TEX_Diffuse;
 void main() {
 	vec4 col = texture(TEX_Diffuse, F_IN.UV);
 	col.rgb = vec3(0.0);
-	o_occlusion = col;
+	o_occlusion = col.a;
 }
 )"

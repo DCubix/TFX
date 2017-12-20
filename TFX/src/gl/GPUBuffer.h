@@ -26,11 +26,15 @@ namespace tfx {
 		void setData(D* data, u32 dataLength, u32 dataOffset = 0) {
 			glBindBuffer(m_bufferType, m_bindCode);
 			if (dataLength > m_dataSize) {
-				glBufferData(m_bufferType, dataLength * sizeof(D), data, m_bufferUsage);
+				if (m_bufferUsage != GPUBufferUsage::Static) {
+					glBufferData(m_bufferType, dataLength * sizeof(D), nullptr, m_bufferUsage);
+				} else {
+					glBufferData(m_bufferType, dataLength * sizeof(D), data, m_bufferUsage);
+				}
 				m_dataSize = dataLength;
-			} else {
-				if (m_bufferUsage != GPUBufferUsage::Static)
-					glBufferSubData(m_bufferType, dataOffset, dataLength * sizeof(D), data);
+			}
+			if (m_bufferUsage != GPUBufferUsage::Static) {
+				glBufferSubData(m_bufferType, dataOffset, dataLength * sizeof(D), data);
 			}
 		}
 
@@ -38,6 +42,7 @@ namespace tfx {
 		void unbind();
 
 		u32 getBindCode() const { return m_bindCode; }
+		GPUBufferType getType() const { m_bufferType; }
 
 	private:
 		u32 m_bindCode;

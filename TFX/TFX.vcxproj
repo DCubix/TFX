@@ -28,7 +28,7 @@
     <ClCompile Include="src\gl\Font.cpp" />
     <ClCompile Include="src\gl\glad.c" />
     <ClCompile Include="src\gl\GPUBuffer.cpp" />
-    <ClCompile Include="src\gl\GPUFramebuffer.cpp" />
+    <ClCompile Include="src\gl\GPURenderTarget.cpp" />
     <ClCompile Include="src\gl\GPUShader.cpp" />
     <ClCompile Include="src\gl\GPUTexture.cpp" />
     <ClCompile Include="src\gl\GPUVertexArray.cpp" />
@@ -53,7 +53,7 @@
     <ClInclude Include="src\gl\gliml.h" />
     <ClInclude Include="src\gl\gliml_dds.h" />
     <ClInclude Include="src\gl\GPUBuffer.h" />
-    <ClInclude Include="src\gl\GPUFramebuffer.h" />
+    <ClInclude Include="src\gl\GPURenderTarget.h" />
     <ClInclude Include="src\gl\GPUShader.h" />
     <ClInclude Include="src\gl\GPUTexture.h" />
     <ClInclude Include="src\gl\GPUVertexArray.h" />
@@ -65,7 +65,7 @@
     <ClInclude Include="src\math\Vector4.h" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="README.md" />
+    <None Include="..\README.md" />
     <None Include="src\gl\gliml.inl" />
     <None Include="src\gl\gliml_dds.inl" />
     <None Include="src\shaders\ShdAmbient.frag" />
@@ -77,12 +77,14 @@
     <None Include="src\shaders\ShdGeomPass.vert" />
     <None Include="src\shaders\ShdDefault.frag" />
     <None Include="src\shaders\ShdDefault.vert" />
+    <None Include="src\shaders\ShdLight.frag" />
+    <None Include="src\shaders\ShdLight.vert" />
     <None Include="src\shaders\ShdOcclusionPass.frag" />
     <None Include="src\shaders\ShdShadowPass.frag" />
     <None Include="src\shaders\ShdShadowPass.vert" />
   </ItemGroup>
   <ItemGroup>
-    <Text Include="LICENSE.txt" />
+    <Text Include="..\LICENSE.txt" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>15.0</VCProjectVersion>

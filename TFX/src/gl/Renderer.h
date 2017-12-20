@@ -10,7 +10,7 @@
 #include "GPUShader.h"
 #include "GPUBuffer.h"
 #include "GPUVertexArray.h"
-#include "GPUFramebuffer.h"
+#include "GPURenderTarget.h"
 
 #include "Font.h"
 
@@ -19,7 +19,8 @@
 #include <functional>
 
 #define TFX_MAX_LIGHTS 50
-#define TFX_LIGHT_SHADOW_SIZE 640
+#define TFX_LIGHT_SIZE 1024
+#define TFX_NMAP_SIZE 128
 
 namespace tfx {
 	typedef struct Light {
@@ -136,7 +137,8 @@ namespace tfx {
 
 		void pass1();
 		void pass2();
-		void pass3();
+		void pass3(int w, int h);
+		void passLight(const Light& light);
 
 		Vec<Drawable*> m_drawables;
 		Vec<Light> m_lights;
@@ -144,20 +146,20 @@ namespace tfx {
 
 		Vector3 m_ambientColor;
 
-		u32 m_vbo, m_ibo, m_vao;
-		u32 m_prevVBOSize, m_prevIBOSize;
+		GPUBuffer *m_batchVBO, *m_batchIBO;
+		GPUVertexArray *m_batchVAO;
 
-		GPUBuffer *m_quad_vbo, *m_quad_ibo;
-		GPUVertexArray* m_quad_vao;
+		GPUBuffer *m_quadVBO, *m_quadIBO;
+		GPUVertexArray* m_quadVAO;
 
 		GPUTexture* m_defaultNormal;
 
-		GPUShader *m_fontShader, *m_defaultShader, *m_ambientShader;
+		GPUShader *m_fontShader, *m_defaultShader, *m_ambientShader, *m_lightShader;
+		GPUShader *m_gbuffShader, *m_fullScreenShader, *m_occlusionShader, *m_shadowShader;
 
-		GPUShader *m_geomPass, *m_fullScreen, *m_occlusionPass, *m_shadowPass, *m_finalPass;
-		GPUFramebuffer *m_gbuffer, *m_occlusion, *m_shadow, *m_final;
-		GPUTexture *m_fbo_position, *m_fbo_diffuse, *m_fbo_normals, *m_fbo_occluder, *m_fbo_shadow, *m_fbo_final;
-
+		GPURenderTarget *m_colorRT, *m_normalsRT, *m_positionRT, *m_finalRT;
+		GPURenderTarget *m_occluderRT, *m_shadowRT, *m_maskRT;
+		
 		Matrix4 m_proj, m_view;
 
 		u32 m_screenWidth, m_screenHeight;

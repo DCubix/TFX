@@ -46,6 +46,9 @@ namespace tfx {
 			case GPUTextureType::RGBAf:
 				glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F, width, height, 0, GL_RGBA, GL_FLOAT, 0);
 				break;
+			case GPUTextureType::Mono:
+				glTexImage2D(GL_TEXTURE_2D, 0, GL_R8, width, height, 0, GL_RED, GL_UNSIGNED_BYTE, 0);
+				break;
 		}
 
 		if (mips) {

@@ -16,10 +16,10 @@ namespace tfx {
 		u32 stride,
 		bool normalized)
 	{
-#define OFF(x) ((const GLvoid*)x)
-
 		glBindVertexArray(m_bindCode);
-		buffer->bind();
+		if (buffer != nullptr) {
+			glBindBuffer(GL_ARRAY_BUFFER, buffer->getBindCode());
+		}
 		glEnableVertexAttribArray(location);
 		glVertexAttribPointer(
 			location,
@@ -30,7 +30,7 @@ namespace tfx {
 			OFF(m_offset)
 		);
 
-		m_offset += u32(attributeType) * sizeof(float);
+		m_offset += (u32) attributeType * sizeof(float);
 	}
 
 	void GPUVertexArray::bindElement(GPUBuffer* buffer) {

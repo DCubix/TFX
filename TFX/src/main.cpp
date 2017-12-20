@@ -40,21 +40,19 @@ public:
 		float x1 = (sinf(t) * 0.5f + 0.5f) * 640.0f;
 		float x2 = (cosf(t) * 0.5f + 0.5f) * 640.0f;
 
-		ren->setAmbientColor(Vector3(0.1f));
-		ren->setPosition(320, 220, 128);
-		ren->drawLight(Vector3(1.0f), 320, 1.0f, true);
+		ren->setAmbientColor(Vector3(0.2f));
 
-		ren->setPosition(x1, 180, 128);
-		ren->drawLight(Vector3(1.0f, 0.23f, 0.0f), 320, 1.4f, true);
+		ren->setPosition(x1, 240, 150);
+		ren->drawLight(Vector3(0.1f, 0.5f, 1.0f), 320, 1.0f, true);
 
-		ren->setPosition(x2, 180, 128);
-		ren->drawLight(Vector3(0.0f, 0.2f, 1.0f), 320, 1.4f, true);
+		ren->setPosition(x2, 240, 150);
+		ren->drawLight(Vector3(1.0f, 0.5f, 0.1f), 320, 1.0f, true);
 
 		RendererState tmp = ren->lock();
 		for (int x = 0; x < 640; x += 256) {
 			for (int y = 0; y < 480; y += 256) {
+				ren->setPosition(x, y, 2);
 				ren->setOccluder(true);
-				ren->setPosition(x, y, 1);
 				ren->draw(tex, tex_n);
 			}
 		}

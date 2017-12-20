@@ -4,14 +4,9 @@
 #include "../core/Input.h"
 
 namespace tfx {
-	Renderer::Renderer(u32 screenWidth, u32 screenHeight)
-		: m_prevVBOSize(0),
-		  m_prevIBOSize(0)
-	{
+	Renderer::Renderer(u32 screenWidth, u32 screenHeight) {
 		m_screenWidth = screenWidth;
 		m_screenHeight = screenHeight;
-
-#define OFF(x) ((const GLvoid*)x)
 
 		m_proj = Matrix4::ortho(0, screenWidth, screenHeight, 0, -100, 100);
 		m_view = Matrix4();
@@ -21,23 +16,14 @@ namespace tfx {
 		glEnable(GL_BLEND);
 		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-		glGenBuffers(1, &m_vbo);
-		glGenBuffers(1, &m_ibo);
-		glGenVertexArrays(1, &m_vao);
-
-		glBindVertexArray(m_vao);
-		glBindBuffer(GL_ARRAY_BUFFER, m_vbo);
-
-		glEnableVertexAttribArray(0);
-		glVertexAttribPointer(0, 3, GL_FLOAT, false, sizeof(Vertex), 0);
-		glEnableVertexAttribArray(1);
-		glVertexAttribPointer(1, 2, GL_FLOAT, false, sizeof(Vertex), OFF(12));
-		glEnableVertexAttribArray(2);
-		glVertexAttribPointer(2, 4, GL_FLOAT, true, sizeof(Vertex), OFF(20));
-
-		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_ibo);
-
-		glBindVertexArray(0);
+		m_batchVBO = new GPUBuffer(GPUBuffer::DataArray, GPUBuffer::Dynamic);
+		m_batchIBO = new GPUBuffer(GPUBuffer::ElementArray, GPUBuffer::Dynamic);
+		m_batchVAO = new GPUVertexArray();
+		m_batchVAO->bindAttribute(0, GPUVertexArray::Float3, m_batchVBO, sizeof(Vertex));
+		m_batchVAO->bindAttribute(1, GPUVertexArray::Float2, nullptr, sizeof(Vertex));
+		m_batchVAO->bindAttribute(2, GPUVertexArray::Float4, nullptr, sizeof(Vertex), true);
+		m_batchVAO->bindElement(m_batchIBO);
+		m_batchVAO->unbind();
 
 		float qverts[] = {
 			0, 0,
@@ -47,121 +33,83 @@ namespace tfx {
 		};
 		u32 qinds[] = { 0, 1, 2, 2, 3, 0 };
 
-		m_quad_vbo = new GPUBuffer(GPUBuffer::DataArray, GPUBuffer::Static);
-		m_quad_vbo->setData(qverts, 8);
+		m_quadVBO = new GPUBuffer(GPUBuffer::DataArray, GPUBuffer::Static);
+		m_quadVBO->setData(qverts, 8);
 
-		m_quad_ibo = new GPUBuffer(GPUBuffer::ElementArray, GPUBuffer::Static);
-		m_quad_ibo->setData(qinds, 6);
+		m_quadIBO = new GPUBuffer(GPUBuffer::ElementArray, GPUBuffer::Static);
+		m_quadIBO->setData(qinds, 6);
 
-		m_quad_vao = new GPUVertexArray();
-		m_quad_vao->bindAttribute(0, GPUVertexArray::Float2, m_quad_vbo, 8);
-		m_quad_vao->bindElement(m_quad_ibo);
+		m_quadVAO = new GPUVertexArray();
+		m_quadVAO->bindAttribute(0, GPUVertexArray::Float2, m_quadVBO, 8);
+		m_quadVAO->bindElement(m_quadIBO);
 
-#define DEFAULT_NMAP_SIZE 128
-		byte *ndata = new byte[DEFAULT_NMAP_SIZE * DEFAULT_NMAP_SIZE * 3];
-		for (int y = 0; y < DEFAULT_NMAP_SIZE; y++) {
-			for (int x = 0; x < DEFAULT_NMAP_SIZE; x++) {
-				int index = (x + y * DEFAULT_NMAP_SIZE) * 3;
+		byte *ndata = new byte[TFX_NMAP_SIZE * TFX_NMAP_SIZE * 3];
+		for (int y = 0; y < TFX_NMAP_SIZE; y++) {
+			for (int x = 0; x < TFX_NMAP_SIZE; x++) {
+				int index = (x + y * TFX_NMAP_SIZE) * 3;
 				ndata[index + 0] = 128;
-				ndata[index + 1] = 210;
+				ndata[index + 1] = 128;
 				ndata[index + 2] = 255;
 			}
 		}
-		m_defaultNormal = new GPUTexture(DEFAULT_NMAP_SIZE, DEFAULT_NMAP_SIZE, GPUTexture::RGB, true, false, ndata);
+		m_defaultNormal = new GPUTexture(TFX_NMAP_SIZE, TFX_NMAP_SIZE, GPUTexture::RGB, true, false, ndata);
 
-		m_geomPass = new GPUShader();
+		m_ambientColor = Vector3(0.12f);
+
+		m_gbuffShader = new GPUShader();
 		String vs = 
 #include "../shaders/ShdGeomPass.vert"
 		;
 		String fs =
 #include "../shaders/ShdGeomPass.frag"
 		;
-		m_geomPass->addSource(vs, GPUShader::VertexShader);
-		m_geomPass->addSource(fs, GPUShader::FragmentShader);
-		m_geomPass->link();
+		m_gbuffShader->addSource(vs, GPUShader::VertexShader);
+		m_gbuffShader->addSource(fs, GPUShader::FragmentShader);
+		m_gbuffShader->link();
 
-		m_fbo_position = new GPUTexture(screenWidth, screenHeight, GPUTexture::RGBf, true, false, nullptr);
-		m_fbo_normals = new GPUTexture(screenWidth, screenHeight, GPUTexture::RGBAf, true, false, nullptr);
-		m_fbo_diffuse = new GPUTexture(screenWidth, screenHeight, GPUTexture::RGBA, true, false, nullptr);
-
-		m_gbuffer = new GPUFramebuffer();
-		m_gbuffer->addColorAttachment(m_fbo_position);
-		m_gbuffer->addColorAttachment(m_fbo_normals);
-		m_gbuffer->addColorAttachment(m_fbo_diffuse);
-
-		m_fullScreen = new GPUShader();
+		m_fullScreenShader = new GPUShader();
 		String fvs =
 #include "../shaders/ShdFullScreen.vert"
 			;
 		String ffs =
 #include "../shaders/ShdFullScreen.frag"
 			;
-		m_fullScreen->addSource(fvs, GPUShader::VertexShader);
-		m_fullScreen->addSource(ffs, GPUShader::FragmentShader);
-		m_fullScreen->link();
+		m_fullScreenShader->addSource(fvs, GPUShader::VertexShader);
+		m_fullScreenShader->addSource(ffs, GPUShader::FragmentShader);
+		m_fullScreenShader->link();
 
 		m_defaultShader = new GPUShader();
-		String lvs =
+		String dvs =
 #include "../shaders/ShdDefault.vert"
 			;
-		String lfs =
+		String dfs =
 #include "../shaders/ShdDefault.frag"
 			;
-		m_defaultShader->addSource(lvs, GPUShader::VertexShader);
-		m_defaultShader->addSource(lfs, GPUShader::FragmentShader);
+		m_defaultShader->addSource(dvs, GPUShader::VertexShader);
+		m_defaultShader->addSource(dfs, GPUShader::FragmentShader);
 		m_defaultShader->link();
 
-		m_occlusionPass = new GPUShader();
+		m_occlusionShader = new GPUShader();
 		String ovs =
 #include "../shaders/ShdGeomPass.vert"
 			;
 		String ofs =
 #include "../shaders/ShdOcclusionPass.frag"
 			;
-		m_occlusionPass->addSource(ovs, GPUShader::VertexShader);
-		m_occlusionPass->addSource(ofs, GPUShader::FragmentShader);
-		m_occlusionPass->link();
+		m_occlusionShader->addSource(ovs, GPUShader::VertexShader);
+		m_occlusionShader->addSource(ofs, GPUShader::FragmentShader);
+		m_occlusionShader->link();
 
-		m_fbo_occluder = new GPUTexture(TFX_LIGHT_SHADOW_SIZE, TFX_LIGHT_SHADOW_SIZE, GPUTexture::RGBAf, true, false);
-		m_fbo_occluder->setFilter(GL_LINEAR, GL_LINEAR);
-
-		m_occlusion = new GPUFramebuffer();
-		m_occlusion->addColorAttachment(m_fbo_occluder);
-
-		m_shadowPass = new GPUShader();
+		m_shadowShader = new GPUShader();
 		String svs =
 #include "../shaders/ShdShadowPass.vert"
 			;
 		String sfs =
 #include "../shaders/ShdShadowPass.frag"
 			;
-		m_shadowPass->addSource(svs, GPUShader::VertexShader);
-		m_shadowPass->addSource(sfs, GPUShader::FragmentShader);
-		m_shadowPass->link();
-
-		m_fbo_shadow = new GPUTexture(TFX_LIGHT_SHADOW_SIZE, 1, GPUTexture::RGB, true, false);
-		m_fbo_shadow->setFilter(GL_LINEAR, GL_LINEAR);
-
-		m_shadow = new GPUFramebuffer();
-		m_shadow->addColorAttachment(m_fbo_shadow);
-
-		m_ambientColor = Vector3(0.12f);
-
-		m_finalPass = new GPUShader();
-		String fivs =
-#include "../shaders/ShdFullScreen.vert"
-			;
-		String fifs =
-#include "../shaders/ShdFinalPass.frag"
-			;
-		m_finalPass->addSource(fivs, GPUShader::VertexShader);
-		m_finalPass->addSource(fifs, GPUShader::FragmentShader);
-		m_finalPass->link();
-
-		m_fbo_final = new GPUTexture(screenWidth, screenHeight, GPUTexture::RGBA, true, false);
-
-		m_final = new GPUFramebuffer();
-		m_final->addColorAttachment(m_fbo_final);
+		m_shadowShader->addSource(svs, GPUShader::VertexShader);
+		m_shadowShader->addSource(sfs, GPUShader::FragmentShader);
+		m_shadowShader->link();
 
 		m_fontShader = new GPUShader();
 		String fntvs =
@@ -174,37 +122,58 @@ namespace tfx {
 		m_fontShader->addSource(fntfs, GPUShader::FragmentShader);
 		m_fontShader->link();
 
+		m_lightShader = new GPUShader();
+		String livs =
+#include "../shaders/ShdLight.vert"
+			;
+		String lifs =
+#include "../shaders/ShdLight.frag"
+			;
+		m_lightShader->addSource(livs, GPUShader::VertexShader);
+		m_lightShader->addSource(lifs, GPUShader::FragmentShader);
+		m_lightShader->link();
+
+		m_colorRT = new GPURenderTarget(screenWidth, screenHeight, GPUTexture::RGBA, true);
+		m_normalsRT = new GPURenderTarget(screenWidth, screenHeight, GPUTexture::RGBf);
+		m_positionRT = new GPURenderTarget(screenWidth, screenHeight, GPUTexture::RGBf);
+		m_finalRT = new GPURenderTarget(screenWidth, screenHeight, GPUTexture::RGB, true);
+
+		m_occluderRT = new GPURenderTarget(TFX_LIGHT_SIZE, TFX_LIGHT_SIZE, GPUTexture::Mono);
+		m_shadowRT = new GPURenderTarget(TFX_LIGHT_SIZE, 1, GPUTexture::Mono);
+
+		m_maskRT = new GPURenderTarget(screenWidth, screenHeight, GPUTexture::Mono);
+
 		glViewport(0, 0, screenWidth, screenHeight);
+
 	}
 
 	Renderer::~Renderer() {
-		glDeleteBuffers(1, &m_vbo);
-		glDeleteBuffers(1, &m_ibo);
-		glDeleteVertexArrays(1, &m_vao);
-		delete m_quad_ibo;
-		delete m_quad_vbo;
-		delete m_quad_vao;
-		delete m_defaultNormal;
-		delete m_geomPass;
-		delete m_gbuffer;
-		delete m_fbo_diffuse;
-		delete m_fbo_position;
-		delete m_fullScreen;
-		delete m_fbo_normals;
-		
-		delete m_occlusionPass;
-		delete m_occlusion;
-		delete m_fbo_occluder;
-		delete m_shadow;
-		delete m_shadowPass;
-		delete m_fbo_shadow;
-		delete m_finalPass;
-		delete m_fbo_final;
-		delete m_final;
+		delete m_quadIBO;
+		delete m_quadVBO;
+		delete m_quadVAO;
 
+		delete m_defaultNormal;
+		
+		delete m_gbuffShader;
+		delete m_fullScreenShader;
 		delete m_defaultShader;
 		delete m_fontShader;
 		delete m_ambientShader;
+		delete m_occlusionShader;
+		delete m_shadowShader;
+		delete m_lightShader;
+
+		delete m_colorRT;
+		delete m_normalsRT;
+		delete m_positionRT;
+		delete m_finalRT;
+		delete m_occluderRT;
+		delete m_shadowRT;
+		delete m_maskRT;
+
+		delete m_batchVBO;
+		delete m_batchIBO;
+		delete m_batchVAO;
 	}
 
 	i32 Renderer::draw(Font* font, const String& str) {
@@ -217,6 +186,8 @@ namespace tfx {
 		float fy = sy;
 		
 		m_state.rotation = 0;
+		bool occ = m_state.occluder;
+		m_state.occluder = false;
 
 		float yp = 0.75f / (float) font->getAtlas()->getHeight();
 		for (char c : str.str()) {
@@ -255,6 +226,7 @@ namespace tfx {
 		m_state.clipRect = Vector4(0, 0, 1, 1);
 		m_state.x = 0;
 		m_state.y = 0;
+		m_state.occluder = occ;
 
 		return (i32) fx;
 	}
@@ -382,20 +354,9 @@ namespace tfx {
 
 		pass1(); // Fill GBuffer
 
-		// Lighting
-		m_final->bind();
-		glClearColor(0, 0, 0, 0);
-		glClear(GL_COLOR_BUFFER_BIT);
-		pass2();
-		m_final->unbind();
+		pass2(); // Lighting
 
-		glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
-		glBindFramebuffer(GL_READ_FRAMEBUFFER, m_final->getBindCode());
-		glBlitFramebuffer(
-			0, 0, m_screenWidth, m_screenHeight, 0, 0, w, h, GL_COLOR_BUFFER_BIT, GL_NEAREST
-		);
-
-		pass3();
+		pass3(w, h); // Defer
 	}
 
 	RendererState Renderer::lock() {
@@ -517,26 +478,15 @@ namespace tfx {
 			io += 4;
 		}
 
-		glBindBuffer(GL_ARRAY_BUFFER, m_vbo);
-		if (vertices.size() > m_prevVBOSize) {
-			glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(Vertex), vertices.data(), GL_DYNAMIC_DRAW);
-			m_prevVBOSize = vertices.size();
-		}
-		glBufferSubData(GL_ARRAY_BUFFER, 0, vertices.size() * sizeof(Vertex), vertices.data());
-
-		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_ibo);
-		if (indices.size() > m_prevIBOSize) {
-			glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices.size() * sizeof(u32), indices.data(), GL_DYNAMIC_DRAW);
-			m_prevIBOSize = indices.size();
-		}
-		glBufferSubData(GL_ELEMENT_ARRAY_BUFFER, 0, indices.size() * sizeof(Vertex), indices.data());
+		m_batchVBO->setData<Vertex>(vertices.data(), vertices.size());
+		m_batchIBO->setData<u32>(indices.data(), indices.size());
 	}
 
 	void Renderer::renderBatches(GPUShader* shader,
 		const std::function<bool(const Batch&)>& cb,
 		const std::function<void(GPUShader*)>& setunicb)
 	{
-		glBindVertexArray(m_vao);
+		m_batchVAO->bind();
 
 		GPUShader* shd = shader;
 		if (shd == nullptr) { return; }
@@ -558,15 +508,35 @@ namespace tfx {
 		}
 
 		shd->unbind();
-		glBindVertexArray(0);
+		m_batchVAO->unbind();
 	}
 
 	void Renderer::pass1() {
-		m_gbuffer->bind();
+		// Render color
+		m_colorRT->bind();
 		glClearColor(0, 0, 0, 0);
 		glClear(GL_COLOR_BUFFER_BIT);
 
-		renderBatches(m_geomPass,
+		renderBatches(m_gbuffShader,
+			[](const Batch& b) {
+			return !b.defer;
+			},
+				[&](GPUShader* shd) {
+				shd->getUniform("MAT_View").set(m_view);
+				shd->getUniform("MAT_Projection").set(m_proj);
+				shd->getUniform("TEX_Diffuse").set(0);
+				shd->getUniform("TEX_Normal").set(1);
+				shd->getUniform("GBP_Mode").set(0);
+			}
+		);
+		m_colorRT->unbind();
+
+		// Render positions
+		m_positionRT->bind();
+		glClearColor(0, 0, 0, 0);
+		glClear(GL_COLOR_BUFFER_BIT);
+
+		renderBatches(m_gbuffShader,
 			[](const Batch& b) {
 				return !b.defer;
 			},
@@ -575,67 +545,192 @@ namespace tfx {
 				shd->getUniform("MAT_Projection").set(m_proj);
 				shd->getUniform("TEX_Diffuse").set(0);
 				shd->getUniform("TEX_Normal").set(1);
+				shd->getUniform("GBP_Mode").set(1);
 			}
 		);
+		m_positionRT->unbind();
 
-		m_gbuffer->unbind();
-	}
-
-	void Renderer::pass2() {
-		glClearColor(0, 0, 0, 1);
+		// Render normals
+		m_normalsRT->bind();
+		glClearColor(0, 0, 0, 0);
 		glClear(GL_COLOR_BUFFER_BIT);
 
-		glBlendFunc(GL_ONE, GL_ONE);
-
-		// Ambient
-		m_fullScreen->bind();
-		m_fullScreen->getUniform("TEX_Screen").set(0);
-		m_fullScreen->getUniform("COL_Tint").set(m_ambientColor);
-
-		m_fbo_diffuse->bind(0);
-
-		m_quad_vao->bind();
-		glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
-		m_quad_vao->unbind();
-
-		m_fullScreen->unbind();
-
-		// Lights
-		m_defaultShader->bind();
-		m_defaultShader->getUniform("TEX_Position").set(0);
-		m_defaultShader->getUniform("TEX_Normal").set(1);
-		m_defaultShader->getUniform("TEX_Diffuse").set(2);
-
-		m_fbo_position->bind(0);
-		m_fbo_normals->bind(1);
-		m_fbo_diffuse->bind(2);
-
-		for (Light light : m_lights) {
-			m_defaultShader->getUniform("LIT_position").set(Vector3(light.x, light.y, light.z));
-			m_defaultShader->getUniform("LIT_radius").set(light.radius);
-			m_defaultShader->getUniform("LIT_intensity").set(light.intensity);
-			m_defaultShader->getUniform("LIT_color").set(light.color);
-
-			m_quad_vao->bind();
-			glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
-			m_quad_vao->unbind();
-		}
-		m_defaultShader->unbind();
-	}
-
-	void Renderer::pass3() {
-		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-
-		renderBatches(m_fontShader,
+		renderBatches(m_gbuffShader,
 			[](const Batch& b) {
-			return b.defer;
+			return !b.defer;
+			},
+				[&](GPUShader* shd) {
+				shd->getUniform("MAT_View").set(m_view);
+				shd->getUniform("MAT_Projection").set(m_proj);
+				shd->getUniform("TEX_Diffuse").set(0);
+				shd->getUniform("TEX_Normal").set(1);
+				shd->getUniform("GBP_Mode").set(2);
+			}
+		);
+		m_normalsRT->unbind();
+
+		// Render mask
+		m_maskRT->bind();
+		glClearColor(0, 0, 0, 0);
+		glClear(GL_COLOR_BUFFER_BIT);
+
+		renderBatches(m_gbuffShader,
+			[](const Batch& b) {
+			return b.occluder;
 		},
 			[&](GPUShader* shd) {
 			shd->getUniform("MAT_View").set(m_view);
 			shd->getUniform("MAT_Projection").set(m_proj);
 			shd->getUniform("TEX_Diffuse").set(0);
+			shd->getUniform("TEX_Normal").set(1);
+			shd->getUniform("GBP_Mode").set(3);
 		}
 		);
+		m_maskRT->unbind();
+	}
+
+	void Renderer::pass2() {
+		m_finalRT->bind();
+		glClearColor(0, 0, 0, 0);
+		glClear(GL_COLOR_BUFFER_BIT);
+		
+		glBlendFunc(GL_ONE, GL_ONE);
+
+		// Ambient
+		m_fullScreenShader->bind();
+		m_fullScreenShader->getUniform("TEX_Screen").set(0);
+		m_fullScreenShader->getUniform("COL_Tint").set(m_ambientColor);
+
+		m_colorRT->getTexture()->bind(0);
+
+		m_quadVAO->bind();
+		glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+		m_quadVAO->unbind();
+
+		m_fullScreenShader->unbind();
+		
+		m_finalRT->unbind();
+
+		// Lights
+		float ls = float(TFX_LIGHT_SIZE);
+		for (Light light : m_lights) {
+			Matrix4 m = Matrix4::uniformScaling(ls / 2.0f) *
+				Matrix4::translation(light.x, light.y, 0);
+			// Shadow
+			if (light.shadow) {
+				glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+				// Occluder
+				m_occluderRT->bind();
+				glClearColor(0, 0, 0, 1);
+				glClear(GL_COLOR_BUFFER_BIT);
+
+				renderBatches(m_occlusionShader,
+					[](const Batch& b) {
+						return b.occluder;
+					},
+						[&](GPUShader* shd) {
+						shd->getUniform("MAT_Projection").set(
+							Matrix4::ortho(0, ls, ls, 0, -100, 100)
+						);
+						shd->getUniform("MAT_View").set(
+							Matrix4::translation(-(float) light.x + ls / 2.0f, -(float) light.y + ls / 2.0f, 0)
+						);
+						shd->getUniform("TEX_Diffuse").set(0);
+					}
+				);
+				m_occluderRT->unbind();
+
+				// Distance shadow map
+				m_shadowRT->bind();
+				glClearColor(1, 1, 1, 1);
+				glClear(GL_COLOR_BUFFER_BIT);
+
+				m_shadowShader->bind();
+
+				m_shadowShader->getUniform("TEX_Occlusion").set(0);
+				m_shadowShader->getUniform("TEX_ShadowSize").set(ls);
+
+				m_occluderRT->getTexture()->bind(0);
+
+				m_quadVAO->bind();
+				glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+				m_quadVAO->unbind();
+
+				m_shadowRT->unbind();
+				glBlendFunc(GL_ONE, GL_ONE);
+			}
+
+			passLight(light);
+		}
+	}
+
+	void Renderer::pass3(int w, int h) {
+		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+		glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
+		m_finalRT->bind(GPURenderTarget::Read);
+		glBlitFramebuffer(
+		0, 0, m_screenWidth, m_screenHeight, 0, 0, w, h, GL_COLOR_BUFFER_BIT, GL_NEAREST
+		);
+		m_finalRT->unbind();
+
+		renderBatches(m_fontShader,
+			[](const Batch& b) {
+			return b.defer;
+			},
+				[&](GPUShader* shd) {
+				shd->getUniform("MAT_View").set(m_view);
+				shd->getUniform("MAT_Projection").set(m_proj);
+				shd->getUniform("TEX_Diffuse").set(0);
+			}
+		);
+	}
+
+	void Renderer::passLight(const Light& light) {
+		float ls = float(TFX_LIGHT_SIZE);
+		Matrix4 m = Matrix4::uniformScaling(ls / 2.0f) * Matrix4::translation(light.x, light.y, 0);
+		
+		m_finalRT->bind();
+
+		// Light
+		m_lightShader->bind();
+		m_lightShader->getUniform("TEX_Position").set(0);
+		m_lightShader->getUniform("TEX_Normal").set(1);
+		m_lightShader->getUniform("TEX_Diffuse").set(2);
+
+		m_lightShader->getUniform("TEX_ShadowEnabled").set(light.shadow ? 1 : 0);
+
+		m_lightShader->getUniform("sresolution").set(Vector2(m_screenWidth, m_screenHeight));
+
+		if (light.shadow) {
+			m_lightShader->getUniform("TEX_Shadow").set(3);
+			m_lightShader->getUniform("TEX_Mask").set(4);
+			m_lightShader->getUniform("TEX_ShadowSize").set(ls);
+		}
+
+		m_lightShader->getUniform("MAT_Projection").set(m_proj);
+		m_lightShader->getUniform("MAT_Model").set(m);
+
+		m_lightShader->getUniform("LIT_position").set(Vector3(light.x, light.y, light.z));
+		m_lightShader->getUniform("LIT_radius").set(light.radius > ls / 2.0f ? ls / 2.0f : light.radius);
+		m_lightShader->getUniform("LIT_intensity").set(light.intensity);
+		m_lightShader->getUniform("LIT_color").set(light.color);
+
+		m_positionRT->getTexture()->bind(0);
+		m_normalsRT->getTexture()->bind(1);
+		m_colorRT->getTexture()->bind(2);
+
+		if (light.shadow) {
+			m_shadowRT->getTexture()->bind(3);
+			m_maskRT->getTexture()->bind(4);
+		}
+
+		m_quadVAO->bind();
+		glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+		m_quadVAO->unbind();
+
+		m_lightShader->unbind();
+		m_finalRT->unbind();
 	}
 
 }

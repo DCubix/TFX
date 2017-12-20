@@ -10,7 +10,8 @@ namespace tfx {
 			RGB,
 			RGBA,
 			RGBf,
-			RGBAf
+			RGBAf,
+			Mono
 		};
 		GPUTexture(u32 width, u32 height,
 			GPUTextureType textureType = GPUTextureType::RGBA,

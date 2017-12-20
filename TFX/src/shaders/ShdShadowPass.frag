@@ -1,5 +1,5 @@
 R"(#version 330 core
-out vec4 fragColor;
+out float distanceValue;
 in vec2 uv;
 
 uniform sampler2D TEX_Occlusion;
@@ -16,15 +16,14 @@ void main() {
 		float theta = PI * 1.5 + norm.x * PI; 
 		float r = (1.0 + norm.y) * 0.5;
 
-		vec2 coord = vec2(-r * sin(theta), -r * cos(theta)) / 0.5 + 0.5;
-		float caster = texture2D(TEX_Occlusion, coord).a;
+		vec2 coord = vec2(-r * sin(theta), -r * cos(theta)) * 0.5 + 0.5;
+		float caster = texture(TEX_Occlusion, coord).r;
 
 		float dst = y / res;
 		if (caster > THRESHOLD) {
 			sdist = min(sdist, dst);
-			break;
   		}
 	}
-	fragColor = vec4(vec3(sdist), 1.0);
+	distanceValue = sdist;
 }
 )"

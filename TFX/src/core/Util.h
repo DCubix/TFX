@@ -13,6 +13,7 @@
 
 #define SafeDelete(x) if (x != nullptr) { delete x; x = nullptr; }
 #define Unsafe(x) if (x != nullptr)
+#define OFF(x) ((const void*)x)
 
 #if defined(DEBUG) || defined(_DEBUG)
 #	define TFX_DEBUG
