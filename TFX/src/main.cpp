@@ -13,78 +13,56 @@
 #include "gl/Renderer.h"
 #include "gl/Font.h"
 
+#include "components/Spatial.h"
+#include "components/Sprite.h"
+
 using namespace tfx;
 
-class TestGame : public IGame {
+class MainScene : public Scene {
 public:
-	void onConfigure(GameConfig& conf) {
-		conf.gameWidth = 640;
-		conf.gameHeight = 480;
+	void onStart() {
+		ent = create()->with<Spatial>()->with<Sprite>();
+
+		Sprite* spr = ent->get<Sprite>();
+		spr->setDiffuse(new GPUTexture("star_d.png"));
+		spr->setNormal(new GPUTexture("star_n.png"));
+
+		spr->setup(3, 5);
+		spr->addAnimation("default", {});
 	}
 
-	void onStart() override {
-		tex = new GPUTexture("teapot_d.dds");
-		tex_n = new GPUTexture("teapot_n.dds");
-		bg = new GPUTexture("bg.dds");
+	void onUpdate(float dt) {
+		Spatial* esp = ent->get<Spatial>();
+		esp->setPosition(Vector3(100, 100, 0));
 
-		fnt = new Font("corbel.png");
+		ent->get<Sprite>()->setOrigin(Vector2(0.5f));
 	}
 
-	void onUpdate(float dt) override {
-		t += dt;
-	}
-
-	void onRender(Renderer* ren) override {
-		glClear(GL_COLOR_BUFFER_BIT);
-
-		float x1 = (sinf(t) * 0.5f + 0.5f) * 640.0f;
-		float x2 = (cosf(t) * 0.5f + 0.5f) * 640.0f;
-
-		ren->setAmbientColor(Vector3(0.2f));
-
-		ren->setPosition(x1, 240, 150);
-		ren->drawLight(Vector3(0.1f, 0.5f, 1.0f), 320, 1.0f, true);
-
-		ren->setPosition(x2, 240, 150);
-		ren->drawLight(Vector3(1.0f, 0.5f, 0.1f), 320, 1.0f, true);
+	void onRender(Renderer* ren) {
+		ren->setAmbientColor(Vector3(0.15f));
 
 		RendererState tmp = ren->lock();
-		for (int x = 0; x < 640; x += 256) {
-			for (int y = 0; y < 480; y += 256) {
-				ren->setPosition(x, y, 2);
-				ren->setOccluder(true);
-				ren->draw(tex, tex_n);
-			}
-		}
+		ren->setPosition(
+			Input::getMouseX(),
+			Input::getMouseY(),
+			45
+		);
+		ren->drawLight(Vector3(1.0f), 320);
 		ren->unlock(tmp);
-
-		ren->setPosition(0, 0, 0);
-		ren->setOccluder(false);
-		ren->draw(bg);
-
-		RendererState tmp2 = ren->lock();
-		ren->setPosition(20, 50, 2);
-		ren->setScale(Vector2(0.4f));
-		ren->draw(fnt, "Hello World!\nJust some text rendering...");
-		ren->unlock(tmp2);
 	}
 
-	void onExit() override {
-		delete tex;
-		delete tex_n;
-		delete bg;
-		delete fnt;
-	}
-
-	float t = 0.0f;
-
-	GPUTexture *tex, *tex_n, *bg;
-	Font* fnt;
+	Entity* ent;
 };
 
 int main() {
 	EngineConfig conf;
 	conf.window.width = 640;
 	conf.window.height = 480;
-	return Engine::start(new TestGame(), conf);
+	conf.game.width = 320;
+	conf.game.height = 240;
+
+	Game* game = new Game();
+	game->addScene<MainScene>("main");
+
+	return Engine::start(game, conf);
 }

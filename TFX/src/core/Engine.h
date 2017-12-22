@@ -3,7 +3,7 @@
 
 #include "Util.h"
 #include "Logger.h"
-#include "IGame.h"
+#include "../logic/Game.h"
 #include "../gl/Renderer.h"
 
 #include "SDL.h"
@@ -12,27 +12,30 @@
 
 namespace tfx {
 	typedef struct EngineConfig {
-		struct WindowConfig {
-			bool fullScreen = false;
+		struct WinConf {
 			u32 width = 640;
 			u32 height = 480;
 			String title = "TFX";
 		} window;
+		struct GameConf {
+			u32 width = 640;
+			u32 height = 480;
+		} game;
 		double fpsCap = 60.0;
 	};
 
 	class Engine {
 	public:
-		static int start(IGame* game, EngineConfig config = EngineConfig());
+		static int start(Game* game, EngineConfig config = EngineConfig());
 
 		static const EngineConfig& getConfig() { return engineConfig; }
-		static IGame* getGame() { return game; }
+		static Game* getGame() { return game; }
 		static Renderer* getRenderer() { return renderer; }
 	private:
 		static void mainloop();
 
 		static EngineConfig engineConfig;
-		static IGame *game;
+		static Game *game;
 
 		static Renderer* renderer;
 

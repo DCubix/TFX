@@ -27,9 +27,9 @@ namespace tfx {
 		static bool isMouseButtonReleased(int btn);
 		static bool isMouseButtonDown(int btn);
 
-		static int getScrollOffset() { return m_scrollOffset; }
-		static int getMouseX() { return m_mouseX; }
-		static int getMouseY() { return m_mouseY; }
+		static i32 getScrollOffset() { return m_scrollOffset; }
+		static i32 getMouseX() { return m_mouseX; }
+		static i32 getMouseY() { return m_mouseY; }
 
 		static bool isCloseRequested() { return m_closeRequested; }
 
@@ -37,8 +37,8 @@ namespace tfx {
 		static SDL_Event m_sdlEvent;
 		static std::unordered_map<int, State> m_keyboard;
 		static std::unordered_map<int, State> m_mouse;
-		static int m_mouseX, m_mouseY;
-		static int m_scrollOffset;
+		static i32 m_mouseX, m_mouseY;
+		static i32 m_scrollOffset;
 		static bool m_closeRequested;
 	};
 }

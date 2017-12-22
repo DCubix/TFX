@@ -13,9 +13,9 @@ namespace tfx {
 
 	Renderer* Engine::renderer = nullptr;
 
-	IGame *Engine::game = nullptr;
+	Game *Engine::game = nullptr;
 
-	int Engine::start(IGame* game, EngineConfig config) {
+	int Engine::start(Game* game, EngineConfig config) {
 		Engine::engineConfig = config;
 		Engine::game = game;
 
@@ -30,23 +30,13 @@ namespace tfx {
 		SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
 		SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 24);
 
-		if (!config.window.fullScreen) {
-			window = SDL_CreateWindow(
-				config.window.title,
-				SDL_WINDOWPOS_CENTERED,	SDL_WINDOWPOS_CENTERED,
-				config.window.width,
-				config.window.height,
-				SDL_WINDOW_OPENGL | SDL_WINDOW_SHOWN
-			);
-		} else {
-			window = SDL_CreateWindow(
-				config.window.title,
-				SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED,
-				config.window.width,
-				config.window.height,
-				SDL_WINDOW_OPENGL | SDL_WINDOW_FULLSCREEN_DESKTOP
-			);
-		}
+		window = SDL_CreateWindow(
+			config.window.title,
+			SDL_WINDOWPOS_CENTERED,	SDL_WINDOWPOS_CENTERED,
+			config.window.width,
+			config.window.height,
+			SDL_WINDOW_OPENGL | SDL_WINDOW_SHOWN
+		);
 
 		LogInfo("Creating window...");
 		if (!window) {
@@ -83,10 +73,7 @@ namespace tfx {
 	void Engine::mainloop() {
 		bool running = true;
 
-		GameConfig gconf;
-		Unsafe(game) game->onConfigure(gconf);
-
-		renderer = new Renderer(gconf.gameWidth, gconf.gameHeight);
+		renderer = new Renderer(engineConfig.game.width, engineConfig.game.height);
 
 		SDL_Event event;
 
@@ -95,11 +82,9 @@ namespace tfx {
 		double accum = 0.0;
 
 		int w = engineConfig.window.width, h = engineConfig.window.height;
-		float rw = (float(gconf.gameWidth) / float(w));
-		float rh = (float(gconf.gameHeight) / float(h));
+		float rw = (float(engineConfig.game.width) / float(w));
+		float rh = (float(engineConfig.game.height) / float(h));
 		
-		Unsafe(game) game->onStart();
-
 		while (running) {
 			bool canRender = false;
 
@@ -115,23 +100,19 @@ namespace tfx {
 			while (accum >= timeStep) {
 				accum -= timeStep;
 
-				Unsafe(game) game->onUpdate(float(timeStep));
+				Unsafe(game) game->update(float(timeStep));
 
 				canRender = true;
 			}
 
 			if (canRender) {
 				renderer->begin();
-				Unsafe(game) game->onRender(renderer);
+				Unsafe(game) game->render(renderer);
 				renderer->end(w, h);
 
 				SDL_GL_SwapWindow(window);
-			} else {
-				SDL_Delay(1);
 			}
 		}
-
-		Unsafe(game) game->onExit();
 
 		SafeDelete(game);
 		SafeDelete(renderer);

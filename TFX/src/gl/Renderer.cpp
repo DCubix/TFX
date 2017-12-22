@@ -54,7 +54,7 @@ namespace tfx {
 		}
 		m_defaultNormal = new GPUTexture(TFX_NMAP_SIZE, TFX_NMAP_SIZE, GPUTexture::RGB, true, false, ndata);
 
-		m_ambientColor = Vector3(0.12f);
+		m_ambientColor = Vector3(1.0f);
 
 		m_gbuffShader = new GPUShader();
 		String vs = 

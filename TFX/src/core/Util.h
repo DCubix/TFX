@@ -9,6 +9,7 @@
 #include <cstdint>
 #include <sstream>
 #include <fstream>
+#include <type_traits>
 #include <time.h>
 
 #define SafeDelete(x) if (x != nullptr) { delete x; x = nullptr; }
@@ -28,6 +29,8 @@ namespace tfx {
 	using i16 = int16_t;
 	using i32 = int32_t;
 	using byte = uint8_t;
+
+	template <typename T, typename S> using IsA = std::enable_if<std::is_base_of<T, S>::value>;
 
 	class String {
 	public:
