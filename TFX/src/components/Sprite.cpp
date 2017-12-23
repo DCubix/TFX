@@ -11,12 +11,6 @@ namespace tfx {
 
 	}
 
-	Sprite::~Sprite() {
-		// TEMP! REMOVE THIS AFTER RESOURCE MANAGER
-		SafeDelete(m_diffuse);
-		SafeDelete(m_normal);
-	}
-
 	void Sprite::onUpdate(float dt) {
 		if (m_currentAnimation.length() == 0) return;
 		if (m_animations.empty()) return;

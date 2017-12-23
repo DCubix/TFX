@@ -6,6 +6,8 @@
 #include "../logic/Game.h"
 #include "../gl/Renderer.h"
 
+#include "ResourceManager.h"
+
 #include "SDL.h"
 
 #include <fstream>
@@ -31,6 +33,8 @@ namespace tfx {
 		static const EngineConfig& getConfig() { return engineConfig; }
 		static Game* getGame() { return game; }
 		static Renderer* getRenderer() { return renderer; }
+		static Resources* getResources() { return resources; }
+
 	private:
 		static void mainloop();
 
@@ -41,6 +45,8 @@ namespace tfx {
 
 		static SDL_Window *window;
 		static SDL_GLContext ctx;
+
+		static Resources* resources;
 	};
 }
 

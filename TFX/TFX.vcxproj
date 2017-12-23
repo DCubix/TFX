@@ -31,6 +31,10 @@
     <ClCompile Include="src\core\Input.cpp" />
     <ClCompile Include="src\core\Logger.cpp" />
     <ClCompile Include="src\core\Option.cpp" />
+    <ClCompile Include="src\core\ResourceManager.cpp">
+      <SubType>
+      </SubType>
+    </ClCompile>
     <ClCompile Include="src\core\tinypng.cpp" />
     <ClCompile Include="src\core\Util.cpp" />
     <ClCompile Include="src\gl\Font.cpp" />
@@ -69,6 +73,10 @@
     <ClInclude Include="src\core\Input.h" />
     <ClInclude Include="src\core\Logger.h" />
     <ClInclude Include="src\core\Option.h" />
+    <ClInclude Include="src\core\ResourceManager.h">
+      <SubType>
+      </SubType>
+    </ClInclude>
     <ClInclude Include="src\core\termcolor.hpp" />
     <ClInclude Include="src\core\tinypng.h" />
     <ClInclude Include="src\core\Util.h" />

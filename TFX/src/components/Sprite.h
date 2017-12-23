@@ -20,7 +20,6 @@ namespace tfx {
 		};
 
 		Sprite();
-		~Sprite();
 		
 		void onUpdate(float dt) override;
 		void onRender(Renderer* renderer) override;

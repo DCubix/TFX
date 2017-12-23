@@ -18,7 +18,7 @@ namespace tfx {
 			bool clamp = false,
 			bool mips = true,
 			byte* tdata = nullptr);
-		GPUTexture(byte* fileData, u32 length);
+		GPUTexture(byte* fileData, u32 length, bool clamp = false, bool mips = false);
 		GPUTexture(String fileName, bool clamp = false, bool mips = false);
 
 		u32 getWidth() const { return m_width; }
@@ -34,7 +34,7 @@ namespace tfx {
 		void generateMipmaps();
 
 	private:
-		void init_dds(byte* data, u32 len);
+		void init(byte* data, u32 w, u32 h, bool clamp, bool mips);
 
 		u32 m_target;
 		u32 m_bindCode;

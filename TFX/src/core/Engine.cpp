@@ -8,12 +8,14 @@
 namespace tfx {
 	EngineConfig Engine::engineConfig;
 	
-	SDL_Window *Engine::window;
+	SDL_Window* Engine::window;
 	SDL_GLContext Engine::ctx;
 
 	Renderer* Engine::renderer = nullptr;
 
-	Game *Engine::game = nullptr;
+	Game* Engine::game = nullptr;
+
+	Resources* Engine::resources = nullptr;
 
 	int Engine::start(Game* game, EngineConfig config) {
 		Engine::engineConfig = config;
@@ -74,6 +76,7 @@ namespace tfx {
 		bool running = true;
 
 		renderer = new Renderer(engineConfig.game.width, engineConfig.game.height);
+		resources = new Resources();
 
 		SDL_Event event;
 
@@ -114,6 +117,7 @@ namespace tfx {
 			}
 		}
 
+		SafeDelete(resources);
 		SafeDelete(game);
 		SafeDelete(renderer);
 	}

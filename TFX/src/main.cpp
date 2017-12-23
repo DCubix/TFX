@@ -24,8 +24,8 @@ public:
 		ent = create()->with<Spatial>()->with<Sprite>();
 
 		Sprite* spr = ent->get<Sprite>();
-		spr->setDiffuse(new GPUTexture("star_d.png"));
-		spr->setNormal(new GPUTexture("star_n.png"));
+		spr->setDiffuse(Engine::getResources()->getTexture("star_d.png"));
+		spr->setNormal(Engine::getResources()->getTexture("star_n.png"));
 
 		spr->setup(3, 5);
 		spr->addAnimation("default", {});
