@@ -82,8 +82,6 @@
     <ClInclude Include="src\core\Util.h" />
     <ClInclude Include="src\gl\Font.h" />
     <ClInclude Include="src\gl\glad.h" />
-    <ClInclude Include="src\gl\gliml.h" />
-    <ClInclude Include="src\gl\gliml_dds.h" />
     <ClInclude Include="src\gl\GPUBuffer.h" />
     <ClInclude Include="src\gl\GPURenderTarget.h" />
     <ClInclude Include="src\gl\GPUShader.h" />
@@ -107,8 +105,6 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="..\README.md" />
-    <None Include="src\gl\gliml.inl" />
-    <None Include="src\gl\gliml_dds.inl" />
     <None Include="src\shaders\ShdAmbient.frag" />
     <None Include="src\shaders\ShdFinalPass.frag" />
     <None Include="src\shaders\ShdFont.frag" />

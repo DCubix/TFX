@@ -1,12 +1,6 @@
 #include "GPUTexture.h"
 
 #include "glad.h"
-#include <assert.h>
-
-#define GLIML_ASSERT assert
-#define GLIML_NO_PVR
-#define GLIML_NO_KTX
-#include "gliml.h"
 
 #include "../core/Logger.h"
 

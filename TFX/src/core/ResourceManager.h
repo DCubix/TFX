@@ -72,7 +72,7 @@ namespace tfx {
 		void unload(const String& fileName) {
 			if (fileName.length() == 0) {
 				LogError("File Name cannot be empty.");
-				return nullptr;
+				return;
 			}
 
 			auto pos = m_resources.find(fileName.str());
